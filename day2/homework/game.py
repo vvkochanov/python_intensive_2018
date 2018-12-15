@@ -2,9 +2,10 @@ import math
 import os
 import random
 import turtle
+import re
+
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
 
 window = turtle.Screen()
 window.setup(1200 + 3, 800 + 3)
@@ -68,17 +69,38 @@ class Missile:
 
 
 class Building:
-    def __init__(self, x, y, image, health):
+    def __init__(self, name, x, y, image, health):
+        self.name = name
         self.x = x
         self.y = y
         self.health = health
-        self.image = image
-        self.pic_path = os.path.join(BASE_PATH, "images", self.image)
+        self.full_health = health
+        # self.image = image
+        self.images = []
+        path = os.path.join(BASE_PATH, "images")
+        for cur_img in os.scandir(path):
+            retxt = re.search(r"(.*_?)\..{3}", cur_img.name)
+            if retxt is not None and retxt.group(1)[:4] == image[:4]:
+                self.images.append(retxt.group(0))
+        print(self.images)
+        self.pic_path = os.path.join(BASE_PATH, "images", self.images[0])
         self.building = turtle.Turtle()
+        self.draw_building(self.images[0])
+        # self.building.hideturtle()
+        # self.building.speed(0)
+        # self.building.penup()
+        # self.building.setpos(x=x, y=y)
+        # window.register_shape(self.pic_path)
+        # self.building.shape(self.pic_path)
+        # self.building.showturtle()
+
+    def draw_building(self, img):
+        self.pic_path = os.path.join(BASE_PATH, "images", img)
+        # self.building = turtle.Turtle()
         self.building.hideturtle()
         self.building.speed(0)
         self.building.penup()
-        self.building.setpos(x=x, y=y)
+        self.building.setpos(x=self.x, y=self.y)
         window.register_shape(self.pic_path)
         self.building.shape(self.pic_path)
         self.building.showturtle()
@@ -87,8 +109,17 @@ class Building:
         for attacking_missile in attacking_missiles:
             if attacking_missile.state != 'explode':
                 continue
-            if attacking_missile.distance(self.x, self.y) < attacking_missile.radius * 10:
+            if attacking_missile.distance(self.x, self.y) < attacking_missile.radius * 20:
                 self.health -= 100
+                destroy_percent = 1. - self.health / self.full_health
+                if self.name == 'base':
+                    continue
+                if 0.25 < destroy_percent <= 0.75:
+                    print(self.name, ': ', self.health, ', 0.5 < destroy_percent <= 0.75,', destroy_percent)
+                    self.draw_building(self.images[1])
+                if 0. < destroy_percent <= 0.25:
+                    print(self.name, ': ', self.health, ', 0. < destroy_percent <= 0.25,', destroy_percent)
+                    self.draw_building(self.images[2])
 
     def is_dead(self):
         return self.health <= 0
@@ -144,19 +175,25 @@ window.onclick(fire_missile)
 our_missiles = []
 enemy_missiles = []
 
-base = Building(BASE_X, BASE_Y, "base.gif", 2000)
-house = Building(BASE_X + 200, BASE_Y, "house_1.gif", 200)
-kremlin = Building(BASE_X - 200, BASE_Y, "kremlin_1.gif", 200)
-nuclear = Building(BASE_X + 400, BASE_Y, "nuclear_1.gif", 200)
-skyscraper = Building(BASE_X - 400, BASE_Y, "skyscraper_1.gif", 200)
+buildings = [Building(name='base', x=BASE_X, y=BASE_Y, image="base.gif", health=2000),
+             Building(name='house', x=BASE_X + 200, y=BASE_Y, image="house_1.gif", health=200),
+             Building(name='kremlin', x=BASE_X - 200, y=BASE_Y, image="kremlin_1.gif", health=200),
+             Building(name='nuclear', x=BASE_X + 400, y=BASE_Y, image="nuclear_1.gif", health=200),
+             Building(name='skyscraper', x=BASE_X - 400, y=BASE_Y, image="skyscraper_1.gif", health=200)]
 
-
+base_is_dead = False
 while True:
     window.update()
-    if base.is_dead():
-        continue
     # check_impact()
-    base.missiles_attack(attacking_missiles=enemy_missiles)
+    for cur_building in buildings:
+        # print(cur_building.name, cur_building.health)
+        if cur_building.name == "base":
+            base_is_dead = cur_building.health <= 0
+        cur_building.missiles_attack(attacking_missiles=enemy_missiles)
+
+    # print(base_is_dead)
+    if base_is_dead:
+        continue
 
     check_enemy_count()
     check_interceptions()
