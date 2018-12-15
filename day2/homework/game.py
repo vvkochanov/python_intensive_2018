@@ -91,7 +91,6 @@ class Building:
                 self.health -= 100
 
     def is_dead(self):
-        print(self.health)
         return self.health <= 0
 
     def get_x(self):
@@ -112,7 +111,8 @@ def fire_missile(x, y):
 def fire_enemy_missile():
     x = random.randint(-600, 600)
     y = 400
-    info = Missile(color='red', x=x, y=y, x2=BASE_X, y2=BASE_Y)
+    x2 = random.randint(-400, 400)
+    info = Missile(color='red', x=x, y=y, x2=x2, y2=BASE_Y)
     enemy_missiles.append(info)
 
 
@@ -143,33 +143,12 @@ window.onclick(fire_missile)
 
 our_missiles = []
 enemy_missiles = []
+
 base = Building(BASE_X, BASE_Y, "base.gif", 2000)
-
-# base = turtle.Turtle()
-# base.hideturtle()
-# base.speed(0)
-# base.penup()
-# base.setpos(x=BASE_X, y=BASE_Y)
-# pic_path = os.path.join(BASE_PATH, "images", "base.gif")
-# window.register_shape(pic_path)
-# base.shape(pic_path)
-# base.showturtle()
-
-# base_health = 2000
-#
-#
-# def game_over():
-#     return base_health < 0
-#
-#
-# def check_impact():
-#     global base_health
-#     for enemy_missile in enemy_missiles:
-#         if enemy_missile.state != 'explode':
-#             continue
-#         if enemy_missile.distance(BASE_X, BASE_Y) < enemy_missile.radius * 10:
-#             base_health -= 100
-#             # print('base_health', base_health)
+house = Building(BASE_X + 200, BASE_Y, "house_1.gif", 200)
+kremlin = Building(BASE_X - 200, BASE_Y, "kremlin_1.gif", 200)
+nuclear = Building(BASE_X + 400, BASE_Y, "nuclear_1.gif", 200)
+skyscraper = Building(BASE_X - 400, BASE_Y, "skyscraper_1.gif", 200)
 
 
 while True:
