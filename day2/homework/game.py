@@ -5,6 +5,7 @@ import turtle
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
+
 window = turtle.Screen()
 window.setup(1200 + 3, 800 + 3)
 window.bgpic(os.path.join(BASE_PATH, "images", "background.png"))
@@ -68,37 +69,38 @@ class Missile:
 
 class Building:
     def __init__(self, x, y, image, health):
+        self.x = x
+        self.y = y
+        self.health = health
         self.image = image
+        self.pic_path = os.path.join(BASE_PATH, "images", self.image)
         self.building = turtle.Turtle()
         self.building.hideturtle()
         self.building.speed(0)
         self.building.penup()
         self.building.setpos(x=x, y=y)
-        # pic_path = os.path.join(BASE_PATH, "images", "base.gif")
-        window.register_shape(image)
-        self.building.shape(image)
+        window.register_shape(self.pic_path)
+        self.building.shape(self.pic_path)
         self.building.showturtle()
 
-    def step(self, atack_missiles):
-        if atack_missile.state != 'explode':
-            return 0
-        if atack_missile.distance(self.x, self.y) < atack_missile.radius * 10:
-            self.health -= 100
-            return 1
+    def missiles_attack(self, attacking_missiles):
+        for attacking_missile in attacking_missiles:
+            if attacking_missile.state != 'explode':
+                continue
+            if attacking_missile.distance(self.x, self.y) < attacking_missile.radius * 10:
+                self.health -= 100
 
     def is_dead(self):
-        self.health <= 0
+        print(self.health)
+        return self.health <= 0
 
-    @property
-    def x(self):
+    def get_x(self):
         return self.x
 
-    @property
-    def y(self):
+    def get_y(self):
         return self.y
 
-    @property
-    def health(self):
+    def get_health(self):
         return self.health
 
 
@@ -141,7 +143,7 @@ window.onclick(fire_missile)
 
 our_missiles = []
 enemy_missiles = []
-base = Building(BASE_X, BASE_Y, os.path.join(BASE_PATH, "images", "base.gif"), 200)
+base = Building(BASE_X, BASE_Y, "base.gif", 2000)
 
 # base = turtle.Turtle()
 # base.hideturtle()
@@ -153,28 +155,29 @@ base = Building(BASE_X, BASE_Y, os.path.join(BASE_PATH, "images", "base.gif"), 2
 # base.shape(pic_path)
 # base.showturtle()
 
-base_health = 2000
-
-
-def game_over():
-    return base_health < 0
-
-
-def check_impact():
-    global base_health
-    for enemy_missile in enemy_missiles:
-        if enemy_missile.state != 'explode':
-            continue
-        if enemy_missile.distance(BASE_X, BASE_Y) < enemy_missile.radius * 10:
-            base_health -= 100
-            # print('base_health', base_health)
+# base_health = 2000
+#
+#
+# def game_over():
+#     return base_health < 0
+#
+#
+# def check_impact():
+#     global base_health
+#     for enemy_missile in enemy_missiles:
+#         if enemy_missile.state != 'explode':
+#             continue
+#         if enemy_missile.distance(BASE_X, BASE_Y) < enemy_missile.radius * 10:
+#             base_health -= 100
+#             # print('base_health', base_health)
 
 
 while True:
     window.update()
-    if game_over():
+    if base.is_dead():
         continue
     # check_impact()
+    base.missiles_attack(attacking_missiles=enemy_missiles)
 
     check_enemy_count()
     check_interceptions()
